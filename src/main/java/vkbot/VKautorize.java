@@ -1,8 +1,5 @@
 package vkbot;
 
-import com.vk.api.sdk.client.TransportClient;
-import com.vk.api.sdk.client.VkApiClient;
-import com.vk.api.sdk.httpclient.HttpTransportClient;
 import org.apache.http.*;
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
@@ -15,6 +12,8 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.message.BufferedHeader;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import parser.ReaderJSON;
 
 import java.io.BufferedReader;
@@ -27,23 +26,35 @@ import java.util.regex.Pattern;
 
 public class VKautorize {
 
-	private static final String USER_AGENT = "Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36";
+    private static Logger logger = LoggerFactory.getLogger(VKautorize.class);
+
+
+
+    private static  String EMAIL = "";
+    private static  String PASS = "";
+    private static  String GROUP = "";
+    private static  String COMMENT = "";
+
+    public VKautorize(String EMAIL, String  PASS, String GROUP, String COMMENT) {
+
+        VKautorize.EMAIL = EMAIL;
+        VKautorize.PASS = PASS;
+        VKautorize.GROUP = GROUP;
+        VKautorize.COMMENT = COMMENT;
+    }
+
+    private static final String USER_AGENT = "Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36";
 
 	private static final String GET_URL = "https://vk.com/";
 	private static final String POST_URL = "https://login.vk.com/?act=login";
 	private static final String LOGIN_URL = "https://vk.com/login.php?act=slogin&to=&s=1&__q_hash=";
-	private static final String EMAIL = "**";
-	private static final String PASS = "**";
+
 	private static String IP_H = "";
 	private static String LG_H = "";
 	private static String Q_HASH = "";
 	private static String REMIXSID = "";
 	private static final HttpHost proxyHost = new HttpHost("127.0.0.1", 8889);
-
-	private static final TransportClient transportClient = HttpTransportClient.getInstance();
-	private static final VkApiClient vk = new VkApiClient(transportClient);
 	private static final String vkApi = "https://api.vk.com/method/wall.get?domain=";
-	private static final String group = "tnull";
 
 	private static final String patternLG_H = "<input type=\"hidden\" name=\"lg_h\" value=\"((\\w)*)\"";
 	private static final String patternIP_H = "<input type=\"hidden\" name=\"ip_h\" value=\"((\\w)*)\"";
@@ -58,16 +69,18 @@ public class VKautorize {
 	private static final Pattern q_hash = Pattern.compile(patternQ_Hash);
 	private static final Pattern remixsid = Pattern.compile(patternRemixsid);
 
-	private  static final RequestConfig globalConfig = RequestConfig.custom()
+	private static final RequestConfig globalConfig = RequestConfig.custom()
 			.setCookieSpec(CookieSpecs.DEFAULT)
 			.setRedirectsEnabled(false)
 			.setProxy(proxyHost)
 			.build();
 
+    private  static final CloseableHttpClient httpClient = HttpClients.custom()
+            .setDefaultRequestConfig(globalConfig)
+            .build();
+
 	public static CloseableHttpResponse sendGET() throws IOException {
-			CloseableHttpClient httpClient = HttpClients.custom()
-				.setDefaultRequestConfig(globalConfig)
-				.build();
+	    logger.info("Connect to VK");
 		RequestConfig localConfig = RequestConfig.copy(globalConfig)
 				.setCookieSpec(CookieSpecs.STANDARD)
 				.build();
@@ -75,8 +88,6 @@ public class VKautorize {
 		httpGet.setConfig(localConfig);
 		httpGet.addHeader("User-Agent", USER_AGENT);
 		CloseableHttpResponse httpResponse = httpClient.execute(httpGet);
-		System.out.println("GET Response Status:: "
-				+ httpResponse.getStatusLine().getStatusCode());
 		BufferedReader reader = new BufferedReader(new InputStreamReader(
 				httpResponse.getEntity().getContent()));
 		String inputLine;
@@ -92,18 +103,14 @@ public class VKautorize {
 		if (m2.find()) {
 			IP_H = m2.group(1);
 		}
-		httpClient.close();
 		reader.close();
-		System.out.println("IP_H  " + IP_H);
-		System.out.println("LG_H  " + LG_H);
+		logger.info("Connect succes. ResponseStatus: "  + httpResponse.getStatusLine().getStatusCode());
 		return httpResponse;
 	}
 
 	public static String sendPOST(CloseableHttpResponse closeableHttpResponse) throws IOException {
-		CloseableHttpClient httpClient = HttpClients.custom()
-				.setDefaultRequestConfig(globalConfig)
-				.build();
-		RequestConfig localConfig = RequestConfig.copy(globalConfig)
+
+	    RequestConfig localConfig = RequestConfig.copy(globalConfig)
 				.setCookieSpec(CookieSpecs.STANDARD)
 				.setRedirectsEnabled(false)
 				.build();
@@ -126,69 +133,54 @@ public class VKautorize {
 		urlParameters.add(new BasicNameValuePair("lg_h", LG_H));
 		urlParameters.add(new BasicNameValuePair("email", EMAIL));
 		urlParameters.add(new BasicNameValuePair("pass", PASS));
-
-
 		HttpEntity postParams = new UrlEncodedFormEntity(urlParameters);
 		httpPost.setEntity(postParams);
 		CloseableHttpResponse httpResponse = httpClient.execute(httpPost);
-		System.out.println("POST Response Status:: "
-				+ httpResponse.getStatusLine().getStatusCode());
 		Header headers = httpResponse.getLastHeader("Location");
 		Matcher m3 = q_hash.matcher(headers.getValue());
 		if (m3.find()) {
 			Q_HASH = m3.group(1);
 		}
-		httpClient.close();
-		System.out.println("Q_HASH: " + Q_HASH);
+		logger.info("Get Q_HASH success. ResponseStatus: "  + httpResponse.getStatusLine().getStatusCode());
 		return Q_HASH;
 	}
 
 	public static String getAutorization() throws IOException {
         String q_HASH = sendPOST(sendGET());
-	    CloseableHttpClient httpClient = HttpClients.custom()
-				.setDefaultRequestConfig(globalConfig)
-				.build();
-		RequestConfig localConfig = RequestConfig.copy(globalConfig)
+
+        RequestConfig localConfig = RequestConfig.copy(globalConfig)
 				.setCookieSpec(CookieSpecs.STANDARD)
 				.build();
 		HttpGet httpGet = new HttpGet(LOGIN_URL+ q_HASH);
 		httpGet.setConfig(localConfig);
 		httpGet.addHeader("User-Agent", USER_AGENT);
 		CloseableHttpResponse httpResponse = httpClient.execute(httpGet);
-		System.out.println("GET Response Status:: "
-				+ httpResponse.getStatusLine().getStatusCode());
 		Header[] headers = httpResponse.getAllHeaders();
 		Matcher m = remixsid.matcher(headers[9].getValue());
 		if (m.find()) {
 			REMIXSID = m.group(1);
 		}
-		httpClient.close();
-		System.out.println("REMIXSID: " + REMIXSID);
+		logger.info("Authorization success"  + httpResponse.getStatusLine().getStatusCode());
 		return headers[9].getValue();
 	}
 
-	public static void sendComment(String comment) throws IOException {
+	public  void sendComment() throws IOException {
 
 		JSONObject json = ReaderJSON.readJsonFromUrl
-				(vkApi+ group +"&count=1&v=5.62");
-		Object numberPost =   json.getJSONObject("response").getJSONArray("items").getJSONObject(0).get("id");
+				(vkApi+ GROUP +"&count=1&v=5.62");
+		Object numberPost = json.getJSONObject("response").getJSONArray("items").getJSONObject(0).get("id");
 		Object numberGroup = json.getJSONObject("response").getJSONArray("items").getJSONObject(0).get("owner_id");
-
-		String headerElement = getAutorization();
-        CloseableHttpClient httpClient = HttpClients.custom()
-                .setDefaultRequestConfig(globalConfig)
-                .build();
+        String headerElement = getAutorization();
         RequestConfig localConfig = RequestConfig.copy(globalConfig)
                 .setCookieSpec(CookieSpecs.STANDARD)
                 .build();
-
 		HttpPost httpPost = new HttpPost
 				("https://vk.com/al_wall.php");
 		httpPost.setConfig(localConfig);
 		httpPost.addHeader("User-Agent", USER_AGENT);
 		httpPost.addHeader("Cookie", headerElement);
 		List<NameValuePair> urlParameters = new ArrayList<>();
-		urlParameters.add(new BasicNameValuePair("Message", comment));
+		urlParameters.add(new BasicNameValuePair("Message", COMMENT));
 		urlParameters.add(new BasicNameValuePair("act", "post"));
 		urlParameters.add(new BasicNameValuePair("al", "1"));
 		urlParameters.add(new BasicNameValuePair("hash", "26253d41c48ecbed4e"));
@@ -199,11 +191,8 @@ public class VKautorize {
 		httpPost.setEntity(postParams);
 		httpPost.addHeader("User-Agent", USER_AGENT);
         CloseableHttpResponse httpResponse = httpClient.execute(httpPost);
-        System.out.println("GET Response Status:: "
-                + httpResponse.getStatusLine().getStatusCode());
-
-		System.out.println(numberGroup);
-		System.out.println(numberPost);
+     	httpClient.close();
+        logger.info("Comments posted. ResponseStatus: "  + httpResponse.getStatusLine().getStatusCode());
 
     }
 }
