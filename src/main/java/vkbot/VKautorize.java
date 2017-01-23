@@ -1,5 +1,8 @@
 package vkbot;
 
+import com.vk.api.sdk.client.TransportClient;
+import com.vk.api.sdk.client.VkApiClient;
+import com.vk.api.sdk.httpclient.HttpTransportClient;
 import org.apache.http.*;
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
@@ -11,6 +14,8 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.message.BufferedHeader;
+import org.json.JSONObject;
+import parser.ReaderJSON;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -27,13 +32,18 @@ public class VKautorize {
 	private static final String GET_URL = "https://vk.com/";
 	private static final String POST_URL = "https://login.vk.com/?act=login";
 	private static final String LOGIN_URL = "https://vk.com/login.php?act=slogin&to=&s=1&__q_hash=";
-	private static final String EMAIL = "***";
-	private static final String PASS = "***";
+	private static final String EMAIL = "**";
+	private static final String PASS = "**";
 	private static String IP_H = "";
 	private static String LG_H = "";
 	private static String Q_HASH = "";
 	private static String REMIXSID = "";
-	private static final HttpHost proxyHost = new HttpHost("127.0.0.1", 8889);
+	private static final HttpHost proxyHost = new HttpHost("127.0.0.1", 8888);
+
+	private static final TransportClient transportClient = HttpTransportClient.getInstance();
+	private static final VkApiClient vk = new VkApiClient(transportClient);
+	private static final String vkApi = "https://api.vk.com/method/wall.get?domain=";
+	private static final String group = "tnull";
 
 	private static final String patternLG_H = "<input type=\"hidden\" name=\"lg_h\" value=\"((\\w)*)\"";
 	private static final String patternIP_H = "<input type=\"hidden\" name=\"ip_h\" value=\"((\\w)*)\"";
@@ -89,7 +99,7 @@ public class VKautorize {
 		return httpResponse;
 	}
 
-	public static void sendPOST(CloseableHttpResponse closeableHttpResponse) throws IOException {
+	public static String sendPOST(CloseableHttpResponse closeableHttpResponse) throws IOException {
 		CloseableHttpClient httpClient = HttpClients.custom()
 				.setDefaultRequestConfig(globalConfig)
 				.build();
@@ -130,16 +140,18 @@ public class VKautorize {
 		}
 		httpClient.close();
 		System.out.println("Q_HASH: " + Q_HASH);
+		return Q_HASH;
 	}
 
-	public static void getAutorization() throws IOException {
-		CloseableHttpClient httpClient = HttpClients.custom()
+	public static String getAutorization() throws IOException {
+        String q_HASH = sendPOST(sendGET());
+	    CloseableHttpClient httpClient = HttpClients.custom()
 				.setDefaultRequestConfig(globalConfig)
 				.build();
 		RequestConfig localConfig = RequestConfig.copy(globalConfig)
 				.setCookieSpec(CookieSpecs.STANDARD)
 				.build();
-		HttpGet httpGet = new HttpGet(LOGIN_URL+ Q_HASH);
+		HttpGet httpGet = new HttpGet(LOGIN_URL+ q_HASH);
 		httpGet.setConfig(localConfig);
 		httpGet.addHeader("User-Agent", USER_AGENT);
 		CloseableHttpResponse httpResponse = httpClient.execute(httpGet);
@@ -152,5 +164,45 @@ public class VKautorize {
 		}
 		httpClient.close();
 		System.out.println("REMIXSID: " + REMIXSID);
+		return headers[9].getValue();
 	}
+
+	public static void sendComment(String comment) throws IOException {
+
+		JSONObject json = ReaderJSON.readJsonFromUrl
+				(vkApi+ group +"&count=1&v=5.62");
+		Object numberPost =   json.getJSONObject("response").getJSONArray("items").getJSONObject(0).get("id");
+		Object numberGroup = json.getJSONObject("response").getJSONArray("items").getJSONObject(0).get("owner_id");
+
+		String headerElement = getAutorization();
+        CloseableHttpClient httpClient = HttpClients.custom()
+                .setDefaultRequestConfig(globalConfig)
+                .build();
+        RequestConfig localConfig = RequestConfig.copy(globalConfig)
+                .setCookieSpec(CookieSpecs.STANDARD)
+                .build();
+
+		HttpPost httpPost = new HttpPost
+				("https://vk.com/al_wall.php");
+		httpPost.setConfig(localConfig);
+		httpPost.addHeader("User-Agent", USER_AGENT);
+		httpPost.addHeader("Cookie", headerElement);
+		List<NameValuePair> urlParameters = new ArrayList<>();
+		urlParameters.add(new BasicNameValuePair("Message", comment));
+		urlParameters.add(new BasicNameValuePair("act", "post"));
+		urlParameters.add(new BasicNameValuePair("al", "1"));
+		urlParameters.add(new BasicNameValuePair("hash", "26253d41c48ecbed4e"));
+		urlParameters.add(new BasicNameValuePair("ref", "wall_one"));
+		urlParameters.add(new BasicNameValuePair("reply_to", numberGroup.toString() + "_" + numberPost.toString()));
+		HttpEntity postParams = new UrlEncodedFormEntity(urlParameters);
+		httpPost.setEntity(postParams);
+		httpPost.addHeader("User-Agent", USER_AGENT);
+        CloseableHttpResponse httpResponse = httpClient.execute(httpPost);
+        System.out.println("GET Response Status:: "
+                + httpResponse.getStatusLine().getStatusCode());
+
+		System.out.println(numberGroup);
+		System.out.println(numberPost);
+
+    }
 }
