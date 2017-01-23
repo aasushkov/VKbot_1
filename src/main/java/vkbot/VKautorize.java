@@ -32,13 +32,13 @@ public class VKautorize {
 	private static final String GET_URL = "https://vk.com/";
 	private static final String POST_URL = "https://login.vk.com/?act=login";
 	private static final String LOGIN_URL = "https://vk.com/login.php?act=slogin&to=&s=1&__q_hash=";
-	private static final String EMAIL = "**";
-	private static final String PASS = "**";
+	private static final String EMAIL = "+79658440167";
+	private static final String PASS = "K9z2411NyLmdjY))";
 	private static String IP_H = "";
 	private static String LG_H = "";
 	private static String Q_HASH = "";
 	private static String REMIXSID = "";
-	private static final HttpHost proxyHost = new HttpHost("127.0.0.1", 8888);
+	private static final HttpHost proxyHost = new HttpHost("127.0.0.1", 8889);
 
 	private static final TransportClient transportClient = HttpTransportClient.getInstance();
 	private static final VkApiClient vk = new VkApiClient(transportClient);
@@ -193,7 +193,8 @@ public class VKautorize {
 		urlParameters.add(new BasicNameValuePair("al", "1"));
 		urlParameters.add(new BasicNameValuePair("hash", "26253d41c48ecbed4e"));
 		urlParameters.add(new BasicNameValuePair("ref", "wall_one"));
-		urlParameters.add(new BasicNameValuePair("reply_to", numberGroup.toString() + "_" + numberPost.toString()));
+		urlParameters.add(new BasicNameValuePair
+				("reply_to", numberGroup.toString() + "_" + numberPost.toString()));
 		HttpEntity postParams = new UrlEncodedFormEntity(urlParameters);
 		httpPost.setEntity(postParams);
 		httpPost.addHeader("User-Agent", USER_AGENT);
