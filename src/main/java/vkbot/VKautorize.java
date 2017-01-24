@@ -12,6 +12,8 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.message.BufferedHeader;
 import org.json.JSONObject;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import parser.ReaderJSON;
@@ -53,6 +55,7 @@ public class VKautorize {
 	private static String LG_H = "";
 	private static String Q_HASH = "";
 	private static String REMIXSID = "";
+    private static  String POST_HASH="";
 	private static final HttpHost proxyHost = new HttpHost("127.0.0.1", 8889);
 	private static final String vkApi = "https://api.vk.com/method/wall.get?domain=";
 
@@ -61,6 +64,8 @@ public class VKautorize {
 	private static final String patternRemixlhk = "remixlhk=((\\w)*)";
 	private static final String patternQ_Hash = "__q_hash=((\\w)*)";
 	private static final String patternRemixsid = "remixsid=((\\w)*);";
+	private static final String patternHash = "\\\"post_hash\\\":\\\"((\\w)*);";
+
 
 
 	private static final Pattern lg_H = Pattern.compile(patternLG_H);
@@ -68,6 +73,7 @@ public class VKautorize {
 	private static final Pattern remixlhk = Pattern.compile(patternRemixlhk);
 	private static final Pattern q_hash = Pattern.compile(patternQ_Hash);
 	private static final Pattern remixsid = Pattern.compile(patternRemixsid);
+	private static final Pattern hash = Pattern.compile(patternHash);
 
 	private static final RequestConfig globalConfig = RequestConfig.custom()
 			.setCookieSpec(CookieSpecs.DEFAULT)
@@ -164,18 +170,48 @@ public class VKautorize {
 		return headers[9].getValue();
 	}
 
-	public  void sendComment() throws IOException {
+	public static String getHash() throws IOException {
 
-		JSONObject json = ReaderJSON.readJsonFromUrl
-				(vkApi+ GROUP +"&count=1&v=5.62");
-		Object numberPost = json.getJSONObject("response").getJSONArray("items").getJSONObject(0).get("id");
-		Object numberGroup = json.getJSONObject("response").getJSONArray("items").getJSONObject(0).get("owner_id");
-        String headerElement = getAutorization();
         RequestConfig localConfig = RequestConfig.copy(globalConfig)
                 .setCookieSpec(CookieSpecs.STANDARD)
                 .build();
+        HttpGet httpGet = new HttpGet(GET_URL + "al_profile.php?__query=" + GROUP + "&_ref=groups&_tstat=236%2C1%2C38%2C295%2Cgroups_list&al=-1&al_id=6207946&_rndVer=22215");
+        httpGet.setConfig(localConfig);
+        httpGet.addHeader("User-Agent", USER_AGENT);
+        CloseableHttpResponse httpResponse = httpClient.execute(httpGet);
+        BufferedReader reader = new BufferedReader(new InputStreamReader(
+                httpResponse.getEntity().getContent()));
+        String inputLine;
+        StringBuilder response = new StringBuilder();
+        while ((inputLine = reader.readLine()) != null) {
+            response.append(inputLine);
+                }
+                POST_HASH = "123";
+
+        Header[] headers = httpResponse.getAllHeaders();
+        for (Header header : headers) {
+            System.out.println("Key : " + header.getName()
+                    + " ,Value : " + header.getValue());
+
+        }
+        return POST_HASH;
+    }
+
+	public  void sendComment() throws IOException {
+		JSONObject json = ReaderJSON.readJsonFromUrl
+				(vkApi+ GROUP +"&count=2&v=5.62");
+        Object numberPost = json.getJSONObject("response")
+                .getJSONArray("items").getJSONObject(1).get("id");
+		Object numberGroup = json.getJSONObject("response")
+                .getJSONArray("items").getJSONObject(0).get("owner_id");
+				logger.info(numberPost.toString());
+		String headerElement = getAutorization();
+		String posthash = getHash();
+		RequestConfig localConfig = RequestConfig.copy(globalConfig)
+                .setCookieSpec(CookieSpecs.STANDARD)
+                .build();
 		HttpPost httpPost = new HttpPost
-				("https://vk.com/al_wall.php");
+				(GET_URL + "al_wall.php");
 		httpPost.setConfig(localConfig);
 		httpPost.addHeader("User-Agent", USER_AGENT);
 		httpPost.addHeader("Cookie", headerElement);
@@ -183,7 +219,7 @@ public class VKautorize {
 		urlParameters.add(new BasicNameValuePair("Message", COMMENT));
 		urlParameters.add(new BasicNameValuePair("act", "post"));
 		urlParameters.add(new BasicNameValuePair("al", "1"));
-		urlParameters.add(new BasicNameValuePair("hash", "26253d41c48ecbed4e"));
+		urlParameters.add(new BasicNameValuePair("hash", POST_HASH));
 		urlParameters.add(new BasicNameValuePair("ref", "wall_one"));
 		urlParameters.add(new BasicNameValuePair
 				("reply_to", numberGroup.toString() + "_" + numberPost.toString()));
@@ -196,3 +232,4 @@ public class VKautorize {
 
     }
 }
+
