@@ -99,7 +99,7 @@ public class VKautorize {
         StringBuffer response = new StringBuffer();
         while ((inputLine = reader.readLine()) != null) {
             response.append(inputLine);
-            
+
         }
         Matcher m1 = lg_H.matcher(response.toString());
         Matcher m2 = ip_H.matcher(response.toString());

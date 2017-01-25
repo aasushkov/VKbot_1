@@ -17,8 +17,6 @@ public class Main {
         String PASS = in.nextLine();
         String GROUP;
         String COMMENT;
-
-
         String s;
         BufferedReader brComment = new BufferedReader
                 (new InputStreamReader(new FileInputStream("comment.txt"), "CP1251"));
