@@ -1,28 +1,34 @@
 package main;
 
-import org.apache.http.HeaderElement;
-import org.apache.http.client.methods.CloseableHttpResponse;
 import vkbot.VKautorize;
 
+import java.io.BufferedReader;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) throws IOException {
+
+        VKautorize vKautorize = null;
 
         Scanner in = new Scanner(System.in);
         System.out.print("Enter VK Login: ");
         String LOGIN = in.nextLine();
         System.out.print("Enter VK Password: ");
         String PASS = in.nextLine();
-        System.out.print("Enter VK Group: ");
-        String GROUP = in.nextLine();
-        System.out.print("Enter Text Comment: ");
+        String GROUP;
+        System.out.print("Enter Comment: ");
         String COMMENT = in.nextLine();
 
-        VKautorize vKautorize = new VKautorize(LOGIN,PASS,GROUP,COMMENT);
+        BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream("groups.txt"),"CP1251"));
+        while((GROUP = br.readLine()) != null) {
+            vKautorize = new VKautorize(LOGIN,PASS,GROUP,COMMENT);
+            vKautorize.sendComment();
+        }
 
-        vKautorize.sendComment();
+        br.close();
 
-           }
+    }
 }
