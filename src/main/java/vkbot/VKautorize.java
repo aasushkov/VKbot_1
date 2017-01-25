@@ -1,6 +1,9 @@
 package vkbot;
 
-import org.apache.http.*;
+import org.apache.http.Header;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpHost;
+import org.apache.http.NameValuePair;
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
@@ -12,11 +15,8 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.message.BufferedHeader;
 import org.apache.http.util.EntityUtils;
+import org.apache.log4j.Logger;
 import org.json.JSONObject;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import parser.ReaderJSON;
 
 import java.io.BufferedReader;
@@ -29,16 +29,14 @@ import java.util.regex.Pattern;
 
 public class VKautorize {
 
-    private static Logger logger = LoggerFactory.getLogger(VKautorize.class);
-
-
-
+	private static Logger logger = Logger.getLogger(VKautorize.class);
     private static  String EMAIL = "";
     private static  String PASS = "";
     private static  String GROUP = "";
     private static  String COMMENT = "";
 
-    public VKautorize(String EMAIL, String  PASS, String GROUP, String COMMENT) {
+    public VKautorize(String EMAIL, String  PASS, String GROUP, String COMMENT) throws IOException {
+
 
         VKautorize.EMAIL = EMAIL;
         VKautorize.PASS = PASS;
@@ -56,14 +54,16 @@ public class VKautorize {
 	private static String LG_H = "";
 	private static String Q_HASH = "";
 	private static String POST_HASH = "";
-	//private static final HttpHost proxyHost = new HttpHost("127.0.0.1", 8888);
+	private static String REMIXSID = "";
+	private static final HttpHost proxyHost = new HttpHost("127.0.0.1", 8888);
 	private static final String vkApi = "https://api.vk.com/method/wall.get?domain=";
 
 	private static final String patternLG_H = "<input type=\"hidden\" name=\"lg_h\" value=\"((\\w)*)\"";
 	private static final String patternIP_H = "<input type=\"hidden\" name=\"ip_h\" value=\"((\\w)*)\"";
 	private static final String patternRemixlhk = "remixlhk=((\\w)*)";
 	private static final String patternQ_Hash = "__q_hash=((\\w)*)";
-	private static final String patternHash = "post_hash\":\"((\\w)*)\"";
+	private static final String patternRemixsid = "remixsid=((\\w)*);";
+	private static final String patternHash = "post_hash\\\\\":\\\\\"((\\w)*)";
 
 
 
@@ -71,12 +71,14 @@ public class VKautorize {
 	private static final Pattern ip_H = Pattern.compile(patternIP_H);
 	private static final Pattern remixlhk = Pattern.compile(patternRemixlhk);
 	private static final Pattern q_hash = Pattern.compile(patternQ_Hash);
+	private static final Pattern remixsid = Pattern.compile(patternRemixsid);
 	private static final Pattern hash = Pattern.compile(patternHash);
+
 
 	private static final RequestConfig globalConfig = RequestConfig.custom()
 			.setCookieSpec(CookieSpecs.DEFAULT)
 			.setRedirectsEnabled(false)
-			//.setProxy(proxyHost)
+			.setProxy(proxyHost)
 			.build();
 
     private  static final CloseableHttpClient httpClient = HttpClients.custom()
@@ -84,7 +86,7 @@ public class VKautorize {
             .build();
 
 	public static CloseableHttpResponse sendGET() throws IOException {
-	    logger.info("Connect to VK");
+	    logger.info("Connect to VK" + "\n");
 		RequestConfig localConfig = RequestConfig.copy(globalConfig)
 				.setCookieSpec(CookieSpecs.STANDARD)
 				.build();
@@ -108,7 +110,7 @@ public class VKautorize {
 			IP_H = m2.group(1);
 		}
 		reader.close();
-		logger.info("Connect success. ResponseStatus: "  + httpResponse.getStatusLine().getStatusCode());
+		logger.info("Connect success. ResponseStatus: "  + httpResponse.getStatusLine().getStatusCode() + "\n");
 		return httpResponse;
 	}
 
@@ -148,7 +150,7 @@ public class VKautorize {
 		if (m3.find()) {
 			Q_HASH = m3.group(1);
 		}
-		logger.info("Get Q_HASH success. ResponseStatus: "  + httpResponse.getStatusLine().getStatusCode());
+		logger.info("Get Q_HASH success. ResponseStatus: "  + httpResponse.getStatusLine().getStatusCode() + "\n");
 		return Q_HASH;
 	}
 
@@ -166,8 +168,12 @@ public class VKautorize {
 		httpGet.addHeader("User-Agent", USER_AGENT);
 		CloseableHttpResponse httpResponse = httpClientLocal.execute(httpGet);
 		Header[] headers = httpResponse.getAllHeaders();
-		logger.info("Authorization success. ResponseStatus: "  + httpResponse.getStatusLine().getStatusCode());
-		return headers[9].getValue();
+		Matcher m = remixsid.matcher(headers[9].getValue());
+		if (m.find()) {
+			REMIXSID = m.group(1);
+		}
+		logger.info("Authorization success. ResponseStatus: "  + httpResponse.getStatusLine().getStatusCode() + "\n");
+		return REMIXSID;
 	}
 
 	public static String getHash() throws IOException {
@@ -178,16 +184,16 @@ public class VKautorize {
         RequestConfig localConfig = RequestConfig.copy(globalConfig)
                 .setCookieSpec(CookieSpecs.STANDARD)
                 .build();
-        HttpGet httpGet = new HttpGet(GET_URL + "al_profile.php?__query=" + GROUP + "&_ref=groups.txt&_tstat=236%2C1%2C38%2C295%2Cgroups_list&al=-1&al_id=6207946&_rndVer=22215");
+        HttpGet httpGet = new HttpGet(GET_URL + "al_profile.php?__query=" + GROUP + "&_ref=groups&_tstat=236%2C1%2C38%2C295%2Cgroups_list&al=-1&al_id=193625629&_rndVer=22215");
         httpGet.setConfig(localConfig);
-        httpGet.addHeader("User-Agent", USER_AGENT);
+		httpGet.addHeader("User-Agent", USER_AGENT);
         CloseableHttpResponse httpResponse = httpClientLocal.execute(httpGet);
        	HttpEntity entity = httpResponse.getEntity();
 		String responseString = EntityUtils.toString(entity, "UTF-8");
 		Matcher mHash = hash.matcher(responseString);
 		if (mHash.find()) {
 			POST_HASH = mHash.group(1);
-			System.out.println("post" + POST_HASH);
+			//System.out.println("post" + POST_HASH);
 		}
 	//System.out.println(responseString.contains("\\\"post_hash\\\":\\\""));
         return POST_HASH;
@@ -208,29 +214,33 @@ public class VKautorize {
 		RequestConfig localConfig = RequestConfig.copy(globalConfig)
                 .setCookieSpec(CookieSpecs.STANDARD)
                 .build();
-		HttpPost httpPost = new HttpPost
-				(GET_URL + "al_wall.php");
+		HttpPost httpPost = new HttpPost(GET_URL + "al_wall.php");
 		httpPost.setConfig(localConfig);
-		httpPost.addHeader("User-Agent", USER_AGENT);
-		httpPost.addHeader("Cookie", headerElement);
+		httpPost.addHeader("Cookie", "remixsid=" + headerElement);
+		httpPost.addHeader("Origin", "https://vk.com");
+
 		List<NameValuePair> urlParameters = new ArrayList<>();
 		urlParameters.add(new BasicNameValuePair("Message", COMMENT));
 		urlParameters.add(new BasicNameValuePair("act", "post"));
 		urlParameters.add(new BasicNameValuePair("al", "1"));
+		urlParameters.add(new BasicNameValuePair("form", ""));
 		urlParameters.add(new BasicNameValuePair("hash",postHash));
-		urlParameters.add(new BasicNameValuePair("ref", "wall_one"));
-		urlParameters.add(new BasicNameValuePair
-				("reply_to", numberGroup.toString() + "_" + numberPost.toString()));
+		urlParameters.add(new BasicNameValuePair("ref", "wall_page"));
+		urlParameters.add(new BasicNameValuePair("reply_to", numberGroup.toString() + "_" + numberPost.toString()));
+		urlParameters.add(new BasicNameValuePair("reply_to_user", "0"));
+		urlParameters.add(new BasicNameValuePair("type", "own"));
+
 		HttpEntity postParams = new UrlEncodedFormEntity(urlParameters);
 		httpPost.setEntity(postParams);
 		httpPost.addHeader("User-Agent", USER_AGENT);
         CloseableHttpResponse httpResponse = httpClientLocal.execute(httpPost);
 		httpClientLocal.close();
-        logger.info("Comments posted. ResponseStatus: "  + httpResponse.getStatusLine().getStatusCode());
-    }
-    public void closeHttpClient() throws IOException {
-		httpClient.close();
+        logger.info("Comments posted. ResponseStatus: "  + httpResponse.getStatusLine().getStatusCode()+ "\n");
+        logger.info("Post a comment: " + GET_URL + GROUP + "?w=wall" + numberGroup + "_" + numberPost + "\n" );
+		System.out.println(postHash);
+		System.out.println("Comments to post in groups. For see details please open log file");
 	}
+
 
 }
 
