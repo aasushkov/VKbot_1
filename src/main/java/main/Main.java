@@ -2,16 +2,13 @@ package main;
 
 import vkbot.VKautorize;
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) throws IOException {
 
-        VKautorize vKautorize = null;
+        VKautorize vKautorize;
 
         Scanner in = new Scanner(System.in);
         System.out.print("Enter VK Login: ");
@@ -19,16 +16,27 @@ public class Main {
         System.out.print("Enter VK Password: ");
         String PASS = in.nextLine();
         String GROUP;
-        System.out.print("Enter Comment: ");
-        String COMMENT = in.nextLine();
+        String COMMENT;
 
-        BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream("groups.txt"),"CP1251"));
-        while((GROUP = br.readLine()) != null) {
-            vKautorize = new VKautorize(LOGIN,PASS,GROUP,COMMENT);
+
+        String s;
+        BufferedReader brComment = new BufferedReader
+                (new InputStreamReader(new FileInputStream("comment.txt"), "CP1251"));
+        StringBuffer commentBuffer = new StringBuffer();
+        while ((s = brComment.readLine()) != null) {
+            commentBuffer.append(s);
+        }
+        COMMENT = commentBuffer.toString();
+
+
+        BufferedReader brGroupList = new BufferedReader
+                (new InputStreamReader(new FileInputStream("groupList.txt"), "CP1251"));
+        while ((GROUP = brGroupList.readLine()) != null) {
+            vKautorize = new VKautorize(LOGIN, PASS, GROUP, COMMENT);
             vKautorize.sendComment();
         }
 
-        br.close();
-
+        brGroupList.close();
     }
+
 }
