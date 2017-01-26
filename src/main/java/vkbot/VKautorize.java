@@ -206,6 +206,7 @@ public class VKautorize {
         RequestConfig localConfig = RequestConfig.copy(globalConfig)
                 .setCookieSpec(CookieSpecs.STANDARD)
                 .build();
+
         HttpPost httpPost = new HttpPost(GET_URL + "al_wall.php");
         httpPost.setConfig(localConfig);
         httpPost.addHeader("Accept-Encoding", "gzip, deflate, br");
