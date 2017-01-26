@@ -22,7 +22,10 @@ import parser.ReaderJSON;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -55,7 +58,7 @@ public class VKautorize {
     private static String Q_HASH = "";
     private static String POST_HASH = "";
     private static String REMIXSID = "";
-    private static final HttpHost proxyHost = new HttpHost("127.0.0.1", 8889);
+    private static final HttpHost proxyHost = new HttpHost("127.0.0.1", 8888);
     private static final String vkApi = "https://api.vk.com/method/wall.get?domain=";
 
     private static final String patternLG_H = "<input type=\"hidden\" name=\"lg_h\" value=\"((\\w)*)\"";
@@ -80,6 +83,7 @@ public class VKautorize {
             .setRedirectsEnabled(false)
             .setProxy(proxyHost)
             .build();
+
        CloseableHttpClient httpClient = HttpClients.custom()
             .setDefaultRequestConfig(globalConfig)
             .build();
@@ -99,7 +103,6 @@ public class VKautorize {
         StringBuffer response = new StringBuffer();
         while ((inputLine = reader.readLine()) != null) {
             response.append(inputLine);
-
         }
         Matcher m1 = lg_H.matcher(response.toString());
         Matcher m2 = ip_H.matcher(response.toString());
@@ -205,6 +208,9 @@ public class VKautorize {
                 .build();
         HttpPost httpPost = new HttpPost(GET_URL + "al_wall.php");
         httpPost.setConfig(localConfig);
+        httpPost.addHeader("Accept-Encoding", "gzip, deflate, br");
+        httpPost.addHeader("Accept-Language", "ru-RU,ru;q=0.8,en-US;q=0.6,en;q=0.4");
+        httpPost.addHeader("Content-Type", "application/x-www-form-urlencoded");
         httpPost.addHeader("Cookie", "remixsid=" + headerElement);
         httpPost.addHeader("Origin", "https://vk.com");
 
@@ -219,7 +225,7 @@ public class VKautorize {
         urlParameters.add(new BasicNameValuePair("reply_to_user", "0"));
         urlParameters.add(new BasicNameValuePair("type", "own"));
 
-        HttpEntity postParams = new UrlEncodedFormEntity(urlParameters);
+        HttpEntity postParams = new UrlEncodedFormEntity(urlParameters,"utf-8");
         httpPost.setEntity(postParams);
         httpPost.addHeader("User-Agent", USER_AGENT);
         CloseableHttpResponse httpResponse = httpClient.execute(httpPost);
