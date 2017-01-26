@@ -3,6 +3,8 @@ package main;
 import vkbot.VKautorize;
 
 import java.io.*;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
 
 public class Main {
@@ -21,16 +23,19 @@ public class Main {
 
         String s;
         BufferedReader brComment = new BufferedReader
-                (new InputStreamReader(new FileInputStream("comment.txt"), "CP1251"));
-        StringBuffer commentBuffer = new StringBuffer();
+                (new InputStreamReader(new FileInputStream("comment.txt")));
+        StringBuilder commentBuffer = new StringBuilder();
         while ((s = brComment.readLine()) != null) {
             commentBuffer.append(s);
         }
         COMMENT = commentBuffer.toString();
+        System.out.println(COMMENT);
+
+        brComment.close();
 
 
         BufferedReader brGroupList = new BufferedReader
-                (new InputStreamReader(new FileInputStream("groupList.txt"), "CP1251"));
+                (new InputStreamReader(new FileInputStream("groupList.txt"), "Windows-1251"));
         while ((GROUP = brGroupList.readLine()) != null) {
             vKautorize = new VKautorize(LOGIN, PASS, GROUP, COMMENT);
             vKautorize.sendComment();
