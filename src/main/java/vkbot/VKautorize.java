@@ -2,7 +2,6 @@ package vkbot;
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
-import org.apache.http.HttpHost;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
@@ -57,6 +56,7 @@ public class VKautorize {
     private static String REMIXSID = "";
   //  private static final HttpHost proxyHost = new HttpHost("127.0.0.1", 8888);
     private static final String vkApi = "https://api.vk.com/method/wall.get?domain=";
+    private static final String ACCESS_TOKEN = "4b98c5564b98c5564b98c556a84bc0373544b984b98c55612c46bceb388bb3b8fabbc72";
 
     private static final String patternLG_H = "<input type=\"hidden\" name=\"lg_h\" value=\"((\\w)*)\"";
     private static final String patternIP_H = "<input type=\"hidden\" name=\"ip_h\" value=\"((\\w)*)\"";
@@ -190,7 +190,7 @@ public class VKautorize {
 
     public  void sendComment() throws IOException {
 
-        JSONObject json = ReaderJSON.readJsonFromUrl(vkApi+ GROUP +"&count=2&v=5.62");
+        JSONObject json = ReaderJSON.readJsonFromUrl(vkApi+ GROUP + "&access_token=" + ACCESS_TOKEN +"&count=2&v=5.62");
         Object numberPost = json.getJSONObject("response")
                 .getJSONArray("items").getJSONObject(1).get("id");
         Object numberGroup = json.getJSONObject("response")

@@ -384,4 +384,22 @@
 %2017-01-26 13:04:22 INFO  VKautorize:171 - Authorization success. ResponseStatus: 200
 %2017-01-26 13:04:23 INFO  VKautorize:232 - Comments posted. ResponseStatus: 200
 %2017-01-26 13:04:23 INFO  VKautorize:233 - Post a comment.txt: https://vk.com/angar8_izh?w=wall-89468220_16
+%2017-01-26 15:09:17 INFO  VKautorize:198 - 623719%2017-01-26 15:09:17 INFO  VKautorize:89 - Connect to VK
+%2017-01-26 15:09:17 INFO  VKautorize:113 - Connect success. ResponseStatus: 200
+%2017-01-26 15:09:17 INFO  VKautorize:150 - Get Q_HASH success. ResponseStatus: 302
+%2017-01-26 15:09:17 INFO  VKautorize:168 - Authorization success. ResponseStatus: 200
+%2017-01-26 15:09:18 INFO  VKautorize:227 - Comments posted. ResponseStatus: 200
+%2017-01-26 15:09:18 INFO  VKautorize:228 - Post a comment.txt: https://vk.com/tnull?w=wall-72495085_623719
+%2017-01-26 15:09:18 INFO  VKautorize:198 - 1461675%2017-01-26 15:09:18 INFO  VKautorize:89 - Connect to VK
+%2017-01-26 15:09:18 INFO  VKautorize:113 - Connect success. ResponseStatus: 200
+%2017-01-26 15:09:18 INFO  VKautorize:150 - Get Q_HASH success. ResponseStatus: 302
+%2017-01-26 15:09:18 INFO  VKautorize:168 - Authorization success. ResponseStatus: 200
+%2017-01-26 15:09:19 INFO  VKautorize:227 - Comments posted. ResponseStatus: 200
+%2017-01-26 15:09:19 INFO  VKautorize:228 - Post a comment.txt: https://vk.com/tproger?w=wall-30666517_1461675
+%2017-07-05 13:29:48 INFO  VKautorize:198 - 1493544%2017-07-05 13:29:48 INFO  VKautorize:89 - Connect to VK
+%2017-07-05 13:29:48 INFO  VKautorize:113 - Connect success. ResponseStatus: 200
+%2017-07-05 13:29:48 INFO  VKautorize:150 - Get Q_HASH success. ResponseStatus: 302
+%2017-07-05 13:29:49 INFO  VKautorize:168 - Authorization success. ResponseStatus: 200
+%2017-07-05 13:29:49 INFO  VKautorize:227 - Comments posted. ResponseStatus: 200
+%2017-07-05 13:29:49 INFO  VKautorize:228 - Post a comment.txt: https://vk.com/tproger?w=wall-30666517_1493544
 %
