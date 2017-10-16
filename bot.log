@@ -402,4 +402,10 @@
 %2017-07-05 13:29:49 INFO  VKautorize:168 - Authorization success. ResponseStatus: 200
 %2017-07-05 13:29:49 INFO  VKautorize:227 - Comments posted. ResponseStatus: 200
 %2017-07-05 13:29:49 INFO  VKautorize:228 - Post a comment.txt: https://vk.com/tproger?w=wall-30666517_1493544
+%2017-10-16 22:02:46 INFO  VKautorize:198 - 1506357%2017-10-16 22:02:46 INFO  VKautorize:89 - Connect to VK
+%2017-10-16 22:02:46 INFO  VKautorize:113 - Connect success. ResponseStatus: 200
+%2017-10-16 22:02:47 INFO  VKautorize:150 - Get Q_HASH success. ResponseStatus: 302
+%2017-10-16 22:02:47 INFO  VKautorize:168 - Authorization success. ResponseStatus: 200
+%2017-10-16 22:02:48 INFO  VKautorize:227 - Comments posted. ResponseStatus: 200
+%2017-10-16 22:02:48 INFO  VKautorize:228 - Post a comment.txt: https://vk.com/tproger?w=wall-30666517_1506357
 %
